@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"log"
+	"time"
 
 	"github.com/gofiber/fiber"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type MongoInstance struct {
@@ -25,7 +28,11 @@ type Employee struct {
 }
 
 func Connect() error {
-	mongo.NewClient
+	_, err := mongo.NewClient(options.Client().ApplyURI(mongoURI))
+
+	context.WithTimeout(context.Background(), 30*time.Second)
+
+	return err
 }
 
 func main() {
