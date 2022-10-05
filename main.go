@@ -130,7 +130,7 @@ func main() {
 		err = mg.Db.Collection("employees").FindOneAndUpdate(c.Context(), query, update).Err()
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
-				c.SendStatus(404)
+				c.SendStatus(400)
 				return
 			}
 			c.SendStatus(500)
@@ -142,7 +142,22 @@ func main() {
 	})
 
 	app.Delete("/employee/:id", func(c *fiber.Ctx) {
+		employeeID, err := primitive.ObjectIDFromHex(c.Params("id"))
+		if err != nil {
+			c.SendStatus(400)
+			return
+		}
 
+		query := bson.D{{Key: "_id", Value: employeeID}}
+		result, err := mg.Db.Collection("employees").DeleteOne(c.Context(), &query)
+		if err != nil {
+			c.SendStatus(500)
+		}
+		if result.DeletedCount < 1 {
+			c.SendStatus(404)
+		}
+
+		c.Status(200).JSON("record deleted")
 	})
 
 	log.Fatal(app.Listen(":3000"))
