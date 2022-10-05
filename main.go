@@ -75,7 +75,28 @@ func main() {
 	})
 
 	app.Post("/employee", func(c *fiber.Ctx) {
+		collection := mg.Db.Collection("employees")
 
+		employee := new(Employee)
+
+		if err := c.BodyParser(employee); err != nil {
+			c.Status(400).SendString(err.Error())
+			return
+		}
+
+		employee.ID = ""
+
+		insertionResult, err := collection.InsertOne(c.Context(), employee)
+		if err != nil {
+			c.Status(500).SendString(err.Error())
+			return
+		}
+
+		filter := bson.D{{Key: "_id", Value: insertionResult.InsertedID}}
+		createdRecord := collection.FindOne(c.Context(), filter)
+
+		createdEmployee := &Employee{}
+		createdRecord.Decode(createdEmployee)
 	})
 
 	app.Put("/employee/:id", func(c *fiber.Ctx) {
