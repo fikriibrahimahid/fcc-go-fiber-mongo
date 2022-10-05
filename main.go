@@ -97,6 +97,8 @@ func main() {
 
 		createdEmployee := &Employee{}
 		createdRecord.Decode(createdEmployee)
+
+		c.Status(201).JSON(createdEmployee)
 	})
 
 	app.Put("/employee/:id", func(c *fiber.Ctx) {
