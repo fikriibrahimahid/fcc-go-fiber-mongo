@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofiber/fiber"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -22,7 +23,7 @@ const dbName = "fiber-hrms"
 const mongoURI = "mongodb://localhost:27017"
 
 type Employee struct {
-	ID     string  `json:"id,omitempty" bson:"_id"`
+	ID     string  `json:"id,omitempty" bson:"_id, omitempty"`
 	Name   string  `json:"name"`
 	Salary float64 `json:"salary"`
 	Age    float64 `json:"age"`
@@ -102,7 +103,42 @@ func main() {
 	})
 
 	app.Put("/employee/:id", func(c *fiber.Ctx) {
+		idParam := c.Params("id")
 
+		employeeID, err := primitive.ObjectIDFromHex(idParam)
+		if err != nil {
+			c.SendStatus(400)
+			return
+		}
+
+		employee := new(Employee)
+		if err := c.BodyParser(employee); err != nil {
+			c.Status(400).SendString(err.Error())
+			return
+		}
+
+		query := bson.D{{Key: "_id", Value: employeeID}}
+		update := bson.D{
+			{Key: "$set",
+				Value: bson.D{
+					{Key: "name", Value: employee.Name},
+					{Key: "age", Value: employee.age},
+					{Key: "salary", Value: employee.Salary},
+				},
+			},
+		}
+		err = mg.Db.Collection("employees").FindOneAndUpdate(c.Context(), query, update).Err()
+		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				c.SendStatus(404)
+				return
+			}
+			c.SendStatus(500)
+			return
+		}
+
+		employee.ID = idParam
+		c.Status(200).JSON(employee)
 	})
 
 	app.Delete("/employee/:id", func(c *fiber.Ctx) {
