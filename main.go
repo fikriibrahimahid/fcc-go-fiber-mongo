@@ -144,4 +144,6 @@ func main() {
 	app.Delete("/employee/:id", func(c *fiber.Ctx) {
 
 	})
+
+	log.Fatal(app.Listen(":3000"))
 }
