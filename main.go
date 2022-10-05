@@ -122,7 +122,7 @@ func main() {
 			{Key: "$set",
 				Value: bson.D{
 					{Key: "name", Value: employee.Name},
-					{Key: "age", Value: employee.age},
+					{Key: "age", Value: employee.Age},
 					{Key: "salary", Value: employee.Salary},
 				},
 			},
